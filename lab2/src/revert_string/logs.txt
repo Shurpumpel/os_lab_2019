@@ -1,0 +1,11 @@
+
+Стиатическая библиотека
+------------------------------------------
+gcc -c revert_string.c
+ar rc librevert_string.a revert_string.o
+ranlib librevert_string.a 
+gcc main.c -L. -lrevert_string -o result.o
+
+Динамическая библиотека
+------------------------------------------
+
