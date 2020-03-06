@@ -1,9 +1,12 @@
-
-i=0
-sum=0
-for val in $(cat numbers.txt)
-    do
-    i=$(($i+1))
-    sum=$(($sum+$val))
-    done
-echo $(($sum/$i))
+#!/bin/bash 
+count=0 
+sum=0 
+while [ -n "$1" ] 
+do 
+sum=$[$sum+$1] 
+count=$[ $count + 1 ] 
+shift 
+done 
+sum=$(($sum/$count)) 
+echo "$count" 
+echo "$sum"
