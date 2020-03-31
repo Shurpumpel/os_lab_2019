@@ -1,0 +1,4 @@
+#1
+gcc sequential_min_max.c find_min_max.c utils.c
+./a.out 2 5
+#2-3
