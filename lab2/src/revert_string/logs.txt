@@ -1,11 +1,17 @@
 
 Стиатическая библиотека
 ------------------------------------------
-gcc -c revert_string.c
-ar rc librevert_string.a revert_string.o
-ranlib librevert_string.a 
-gcc main.c -L. -lrevert_string -o result.o
+gcc -c revert_string.c -o ./static/revert_string.o
+ar rc ./static/librevert_stringstatic.a ./static/revert_string.o
+ranlib ./static/librevert_stringstatic.a 
+gcc main.c -L ./static -lrevert_stringstatic -o ./static/staticres.o
+./static/staticres.o abcd
 
 Динамическая библиотека
 ------------------------------------------
-
+gcc -fPIC -c revert_string.c -o ./dynamic/revert_string.o
+gcc -shared -o ./dynamic/librevert_stringdynamic.so ./dynamic/revert_string.o
+gcc -c main.c -o ./dynamic/main.o
+LD_LIBRARY_PATH=/projects/os_lab_2019/lab2/src/revert_string/dynamic
+gcc ./dynamic/main.o -L ./dynamic -lrevert_stringdynamic -o ./dynamic/dynamicres.o
+./dynamic/dynamicres.o abcd
