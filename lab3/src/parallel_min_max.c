@@ -16,6 +16,7 @@
 #include "utils.h"
 
 int main(int argc, char **argv) {
+  int i=0;
   int seed = -1;
   int array_size = -1;
   int pnum = -1;
@@ -40,30 +41,36 @@ int main(int argc, char **argv) {
         switch (option_index) {
           case 0:
             seed = atoi(optarg);
-            if (seed <= 0){
-                printf("seed is a positive number\n");
-                return 1;
+            // your code here
+            // error handling
+            if (seed <= 0) {
+            printf("seed is a positive number\n");
+            return 1;
             }
             break;
           case 1:
             array_size = atoi(optarg);
+            // your code here
+            // error handling
             if (array_size <= 0) {
-              printf("array_size is a positive number\n");
-              return 1;
+            printf("array_size is a positive number\n");
+            return 1;
             }
             break;
           case 2:
             pnum = atoi(optarg);
-            if (pnum < 0){
-                printf("pnum is a positive number");
-                return 1;
+            // your code here
+            // error handling
+            if (pnum <= 0) {
+            printf("pnum is a positive number\n");
+            return 1;
             }
             break;
           case 3:
             with_files = true;
             break;
 
-          defalut:
+          default:
             printf("Index %d is out of options\n", option_index);
         }
         break;
@@ -83,7 +90,7 @@ int main(int argc, char **argv) {
     printf("Has at least one no option argument\n");
     return 1;
   }
-
+  
   if (seed == -1 || array_size == -1 || pnum == -1) {
     printf("Usage: %s --seed \"num\" --array_size \"num\" --pnum \"num\" \n",
            argv[0]);
@@ -96,21 +103,36 @@ int main(int argc, char **argv) {
 
   struct timeval start_time;
   gettimeofday(&start_time, NULL);
-
-  for (int i = 0; i < pnum; i++) {
+  int file_pipe[2];
+  if (pipe(file_pipe)<0)
+    {exit(0);}
+  for (i = 0; i < pnum; i++) {
     pid_t child_pid = fork();
     if (child_pid >= 0) {
       // successful fork
       active_child_processes += 1;
       if (child_pid == 0) {
         // child process
-
         // parallel somehow
-
+        struct MinMax min_max = GetMinMax(array,0,array_size);
         if (with_files) {
-          // use files here
+          FILE *f;
+          f=fopen("min_max.txt","w");
+          char buf[33];
+          sprintf(buf,"%d",min_max.min);
+          fprintf(f,buf);
+          fprintf(f,"\n");
+          sprintf(buf,"%d",min_max.max);
+          fprintf(f,buf);
+          fprintf(f,"\n");
         } else {
           // use pipe here
+          
+          char buf[33];
+          sprintf(buf,"%d",min_max.min);
+          write(file_pipe[1],buf,strlen(buf));
+          sprintf(buf,"%d",min_max.max);
+          write(file_pipe[1],buf,strlen(buf));
         }
         return 0;
       }
@@ -121,9 +143,10 @@ int main(int argc, char **argv) {
     }
   }
 
+    int status;
   while (active_child_processes > 0) {
     // your code here
-
+    wait(&status);
     active_child_processes -= 1;
   }
 
@@ -131,14 +154,34 @@ int main(int argc, char **argv) {
   min_max.min = INT_MAX;
   min_max.max = INT_MIN;
 
-  for (int i = 0; i < pnum; i++) {
+  for (i = 0; i < pnum; i++) {
     int min = INT_MAX;
     int max = INT_MIN;
 
     if (with_files) {
-      // read from files
+      FILE *f = fopen("min_max.txt","r");
+      char buf[256];
+      int a;
+      fscanf(f,"%s",buf);
+      printf("%s\n",buf);
+      a=atoi(buf);
+      if (min>a) min=a;
+      fscanf(f,"%s",buf);
+      printf("%s\n",buf);
+      a=atoi(buf);
+      if (max<a) max=a;
     } else {
       // read from pipes
+      char buf[256];
+      int a;
+      read(file_pipe[0],buf,9);
+      //printf("%s\n",buf);
+      a=atoi(buf);
+      if (min>a) min=a;
+      read(file_pipe[0],buf,10);
+      //printf("%s\n",buf);
+      a=atoi(buf);
+      if (max<a) max=a;
     }
 
     if (min < min_max.min) min_max.min = min;
