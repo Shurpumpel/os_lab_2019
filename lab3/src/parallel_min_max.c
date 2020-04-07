@@ -129,9 +129,9 @@ int main(int argc, char **argv) {
           // use pipe here
           
           char buf[33];
-          sprintf(buf,"%d",min_max.min);
+          //sprintf(buf,"%d",min_max.min);
           write(file_pipe[1],buf,strlen(buf));
-          sprintf(buf,"%d",min_max.max);
+          //sprintf(buf,"%d",min_max.max);
           write(file_pipe[1],buf,strlen(buf));
         }
         return 0;
@@ -175,11 +175,11 @@ int main(int argc, char **argv) {
       char buf[256];
       int a;
       read(file_pipe[0],buf,9);
-      //printf("%s\n",buf);
+      printf("%s\n",buf);
       a=atoi(buf);
       if (min>a) min=a;
       read(file_pipe[0],buf,10);
-      //printf("%s\n",buf);
+      printf("%s\n",buf);
       a=atoi(buf);
       if (max<a) max=a;
     }
