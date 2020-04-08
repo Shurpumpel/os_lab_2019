@@ -99,13 +99,18 @@ int main(int argc, char **argv) {
 
   int *array = malloc(sizeof(int) * array_size);
   GenerateArray(array, array_size, seed);
+
   int active_child_processes = 0;
 
   struct timeval start_time;
   gettimeofday(&start_time, NULL);
-  int file_pipe[2];
-  if (pipe(file_pipe)<0)
+  int file_pipe_min[2];
+  int file_pipe_max[2];
+  if (pipe(file_pipe_min)<0)
     {exit(0);}
+  if (pipe(file_pipe_max)<0)
+    {exit(0);}
+  
   for (i = 0; i < pnum; i++) {
     pid_t child_pid = fork();
     if (child_pid >= 0) {
@@ -127,12 +132,13 @@ int main(int argc, char **argv) {
           fprintf(f,"\n");
         } else {
           // use pipe here
-          
-          char buf[33];
-          //sprintf(buf,"%d",min_max.min);
-          write(file_pipe[1],buf,strlen(buf));
-          //sprintf(buf,"%d",min_max.max);
-          write(file_pipe[1],buf,strlen(buf));
+          char buf[256];
+          sprintf(buf,"%d",min_max.min);
+          write(file_pipe_min[1],buf,30);
+          //printf("%s\n", buf);
+          sprintf(buf,"%d",min_max.max);
+          write(file_pipe_max[1],buf,30);
+          //printf("%s\n", buf);
         }
         return 0;
       }
@@ -163,23 +169,23 @@ int main(int argc, char **argv) {
       char buf[256];
       int a;
       fscanf(f,"%s",buf);
-      printf("%s\n",buf);
+      //printf("%s\n",buf);
       a=atoi(buf);
       if (min>a) min=a;
       fscanf(f,"%s",buf);
-      printf("%s\n",buf);
+      //printf("%s\n",buf);
       a=atoi(buf);
       if (max<a) max=a;
     } else {
       // read from pipes
       char buf[256];
       int a;
-      read(file_pipe[0],buf,9);
-      printf("%s\n",buf);
+      read(file_pipe_min[0],buf,30);
+      //printf("%s\n",buf);
       a=atoi(buf);
       if (min>a) min=a;
-      read(file_pipe[0],buf,10);
-      printf("%s\n",buf);
+      read(file_pipe_max[0],buf,30);
+      //printf("\n%s\n",buf);
       a=atoi(buf);
       if (max<a) max=a;
     }
