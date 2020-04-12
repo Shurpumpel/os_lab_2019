@@ -7,6 +7,7 @@
 
 #include <getopt.h>
 
+#include "utils.h"
 struct SumArgs {
   int *array;
   int begin;
@@ -15,7 +16,10 @@ struct SumArgs {
 
 int Sum(const struct SumArgs *args) {
   int sum = 0;
-  // TODO: your code here 
+  int i;
+  for(i=args->begin; i<args->end;i++){
+      sum+=args->array[i];
+  }
   return sum;
 }
 
@@ -25,6 +29,7 @@ void *ThreadSum(void *args) {
 }
 
 int main(int argc, char **argv) {
+  uint32_t i;
   uint32_t threads_num = 0;
   uint32_t array_size = 0;
   uint32_t seed = 0;
@@ -48,8 +53,6 @@ int main(int argc, char **argv) {
         switch (option_index) {
           case 0:
             threads_num = atoi(optarg);
-            // your code here
-            // error handling
             if (threads_num <= 0) {
             printf("threads_num is a positive number\n");
             return 1;
@@ -57,8 +60,6 @@ int main(int argc, char **argv) {
             break;
           case 1:
             seed = atoi(optarg);
-            // your code here
-            // error handling
             if (seed <= 0) {
             printf("seed is a positive number\n");
             return 1;
@@ -66,8 +67,6 @@ int main(int argc, char **argv) {
             break;
           case 2:
             array_size = atoi(optarg);
-            // your code here
-            // error handling
             if (array_size <= 0) {
             printf("array_size is a positive number\n");
             return 1;
@@ -88,9 +87,10 @@ int main(int argc, char **argv) {
   }
 
   int *array = malloc(sizeof(int) * array_size);
+  GenerateArray(array, array_size, seed);
 
   struct SumArgs args[threads_num];
-  for (uint32_t i = 0; i < threads_num; i++) {
+  for ( i = 0; i < threads_num; i++) {
     if (pthread_create(&threads[i], NULL, ThreadSum, (void *)&args)) {
       printf("Error: pthread_create failed!\n");
       return 1;
@@ -98,7 +98,7 @@ int main(int argc, char **argv) {
   }
 
   int total_sum = 0;
-  for (uint32_t i = 0; i < threads_num; i++) {
+  for ( i = 0; i < threads_num; i++) {
     int sum = 0;
     pthread_join(threads[i], (void **)&sum);
     total_sum += sum;
