@@ -2,6 +2,9 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <stdlib.h>
+#include <time.h>
+#include <sys/types.h>
+#include <sys/time.h>
 
 #include <pthread.h>
 
@@ -17,9 +20,10 @@ struct SumArgs {
 int Sum(const struct SumArgs *args) {
   int sum = 0;
   int i;
-  for(i=args->begin; i<args->end;i++){
-      sum+=args->array[i];
+  for(i=(args->begin); i<(args->end);i++){
+      sum+=(args->array[i]);
   }
+  
   return sum;
 }
 
@@ -38,7 +42,7 @@ int main(int argc, char **argv) {
   while (true) {
     int current_optind = optind ? optind : 1;
 
-    static struct option options[] = {{"threds_num", required_argument, 0, 0},
+    static struct option options[] = {{"threads_num", required_argument, 0, 0},
                                       {"seed", required_argument, 0, 0},
                                       {"array_size", required_argument, 0, 0},
                                       {0, 0, 0, 0}};
@@ -86,11 +90,22 @@ int main(int argc, char **argv) {
     }
   }
 
+  printf("%d %d %d\n", threads_num, seed, array_size);
   int *array = malloc(sizeof(int) * array_size);
   GenerateArray(array, array_size, seed);
 
+  for (i=0;i<array_size;i++){
+      printf("%d ", array[i]);
+  }
+  printf("\n");
+  
+   struct timeval start_time;
+  gettimeofday(&start_time, NULL);
   struct SumArgs args[threads_num];
   for ( i = 0; i < threads_num; i++) {
+      args->array = array;
+      args->begin = 0;
+      args->end = array_size;
     if (pthread_create(&threads[i], NULL, ThreadSum, (void *)&args)) {
       printf("Error: pthread_create failed!\n");
       return 1;
@@ -103,8 +118,14 @@ int main(int argc, char **argv) {
     pthread_join(threads[i], (void **)&sum);
     total_sum += sum;
   }
+  struct timeval finish_time;
+  gettimeofday(&finish_time, NULL);
+  
+  double elapsed_time = (finish_time.tv_sec - start_time.tv_sec) * 1000.0;
+  elapsed_time += (finish_time.tv_usec - start_time.tv_usec) / 1000.0;
 
   free(array);
   printf("Total: %d\n", total_sum);
+  printf("Elapsed time: %fms\n", elapsed_time);
   return 0;
 }

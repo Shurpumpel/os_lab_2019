@@ -1,0 +1,1 @@
+gcc parallel_sum.c utils.c -pthread   
