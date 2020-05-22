@@ -9,6 +9,7 @@ factorial:
 	./a.out --k 10 --pnum 2 --mod 10
 deadlock:
 	gcc deadlock.c -pthread
-	./a.out
+	./a.out &
+	ps
 clean:
 	rm *.out
