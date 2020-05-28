@@ -41,6 +41,7 @@ bool ConvertStringToUI64(const char *str, uint64_t *val) {
 
   *val = i;
   return true;
+
 }
 
 pthread_mutex_t mut = PTHREAD_MUTEX_INITIALIZER;
