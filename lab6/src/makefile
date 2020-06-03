@@ -8,7 +8,7 @@ makelib:
 client:
 	gcc client.o -L. -lmultmodulo -pthread -o clientout.o
 server:
-	gcc server.o -L. -lmultmodulo -pthread -o serverout.out
+	gcc server.o -L. -lmultmodulo -pthread -o serverout.o
 clean:
 	rm *.o
 	rm libmultmodulo.a

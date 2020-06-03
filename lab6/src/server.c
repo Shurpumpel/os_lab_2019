@@ -4,6 +4,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <math.h>
+#include <errno.h>
 
 #include <getopt.h>
 #include <netinet/in.h>
@@ -14,14 +16,13 @@
 #include "pthread.h"
 #include "Multmodulo.h"
 
+int port = -1;
+
 struct FactorialArgs {
   uint64_t begin;
   uint64_t end;
   uint64_t mod;
 };
-
-
-int port = -1;
 
 uint64_t Factorial(const struct FactorialArgs *args) {
   uint64_t ans = 1;
@@ -39,23 +40,18 @@ void *ThreadFactorial(void *args) {
   return (void *)(uint64_t *)Factorial(fargs);
 }
 
+
 int main(int argc, char **argv) {
   int tnum = -1;
-  int port = -1;
-
   while (true) {
     int current_optind = optind ? optind : 1;
-
     static struct option options[] = {{"port", required_argument, 0, 0},
                                       {"tnum", required_argument, 0, 0},
                                       {0, 0, 0, 0}};
-
     int option_index = 0;
     int c = getopt_long(argc, argv, "", options, &option_index);
-
     if (c == -1)
       break;
-
     switch (c) {
     case 0: {
       switch (option_index) {
@@ -79,7 +75,6 @@ int main(int argc, char **argv) {
         printf("Index %d is out of options\n", option_index);
       }
     } break;
-
     case '?':
       printf("Unknown argument\n");
       break;
@@ -87,7 +82,6 @@ int main(int argc, char **argv) {
       fprintf(stderr, "getopt returned character code 0%o?\n", c);
     }
   }
-
   if (port == -1 || tnum == -1) {
     fprintf(stderr, "Using: %s --port 20001 --tnum 4\n", argv[0]);
     return 1;
@@ -103,6 +97,7 @@ int main(int argc, char **argv) {
     fprintf(stderr, "Can not create server socket!");
     return 1;
   }
+
   //Структура sockaddr_in описывает сокет для работы с протоколами IP
   struct sockaddr_in server;
   server.sin_family = AF_INET;
@@ -121,17 +116,17 @@ int main(int argc, char **argv) {
     fprintf(stderr, "Can not bind to socket!");
     return 1;
   }
-
+  
   //Cообщает уровню протокола, что сокет готов к принятию новых входящих соединений
   //Перевод сокета в пассивное (слушающее) состояние и создание очередей сокетов
-  //128 - макс размер очереди
-  err = listen(server_fd, 128);
+  err = listen(server_fd, 128); //128 - макс размер очереди
   if (err < 0) {
     fprintf(stderr, "Could not listen on socket\n");
     return 1;
   }
 
   printf("Server listening at %d\n", port);
+
   //Слушаем в цикле
   while (true) {
     struct sockaddr_in client;
@@ -162,7 +157,8 @@ int main(int argc, char **argv) {
       }
 
       pthread_t threads[tnum];
-
+      
+      //Разбиваем информацию от клиента
       uint64_t begin = 0;
       uint64_t end = 0;
       uint64_t mod = 0;
@@ -174,14 +170,15 @@ int main(int argc, char **argv) {
 
       struct FactorialArgs args[tnum];
       uint32_t i;
-      for (i = 0; i < tnum; i++) {
+      for ( i = 0; i < tnum; i++) {
         // TODO: parallel somehow
-        args[i].begin = begin + (end-begin+1)/tnum*i;
         args[i].mod = mod;
+        args[i].begin = begin + (end-begin+1)/tnum*i;
         if (tnum%2==1 & i == (tnum-1))
-            args[i].end = begin + (end-begin+1)/tnum*(i+1)+1;
+            args[i].end = begin + (end-begin+1)/tnum*(i+1) +1;
         else
             args[i].end = begin + (end-begin+1)/tnum*(i+1);
+        //fprintf(stdout, "%d %d - %lu %lu\n", port, i, args[i].begin, args[i].end);
         //Создаём потоки с функцией подсчёта факториала
         if (pthread_create(&threads[i], NULL, ThreadFactorial,
                            (void *)&args[i])) {
@@ -197,7 +194,7 @@ int main(int argc, char **argv) {
         total = MultModulo(total, result, mod);
       }
 
-      printf("Total: %lu\n", total);
+      printf("%d total: %lu\n", port, total);
 
       //Отправляет сообщения в сокет клиента
       char buffer[sizeof(total)];
@@ -208,6 +205,7 @@ int main(int argc, char **argv) {
         break;
       }
     }
+
     //Немедленное закрытие всех или части связей на сокет
     shutdown(client_fd, SHUT_RDWR);
     //Закрывает (или прерывает) все существующие соединения сокета
