@@ -1,12 +1,15 @@
 all: server client
 makelib:
-	gcc -c Multmodulo.c -o Multmodulo.o
-	ar rc libmultmodulo.a Multmodulo.o
+	gcc -c Multmodulo.c -o multmodulo.o
+	ar rc libmultmodulo.a multmodulo.o
 	ranlib libmultmodulo.a 
+	gcc -c server.c -o server.o
+	gcc -c client.c -o client.o
 client:
-	gcc client.c Multmodulo.c -pthread -o client.o
+	gcc client.o -L. -lmultmodulo -pthread -o clientout.o
 server:
-	gcc server.c Multmodulo.c -pthread -o server.o
+	gcc server.o -L. -lmultmodulo -pthread -o serverout.out
 clean:
 	rm *.o
+	rm libmultmodulo.a
 	
