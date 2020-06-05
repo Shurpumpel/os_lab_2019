@@ -1,4 +1,4 @@
-all: server client
+all: start
 makelib:
 	gcc -c Multmodulo.c -o multmodulo.o
 	ar rc libmultmodulo.a multmodulo.o
@@ -12,4 +12,9 @@ server:
 clean:
 	rm *.o
 	rm libmultmodulo.a
-	
+make start:
+	make makelib
+	make 
+	./serverout.o --port 20001 --tnum 2 &
+	./serverout.o --port 20002 --tnum 3 &
+	./clientout.o --k 20 --mod 58 --servers ./servers.txt
