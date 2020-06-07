@@ -110,23 +110,5 @@ int main(int argc, char *argv[]) {
       exit(1);
     }
 
-    if(flag) {
-        // падение сервера = сокет не может принимать данные
-        shutdown(sockfd, SHUT_RDWR);
-        close(sockfd);
-
-        sleep(1);
-
-        if ((sockfd2 = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
-            perror("socket problem");
-            exit(1);
-        }
-        if (bind(sockfd2, (SADDR *)&servaddr, SLEN) < 0) {
-            perror("bind problem");
-            exit(1);
-        }
-        flag = -1;
-    }
-
   }
 }
