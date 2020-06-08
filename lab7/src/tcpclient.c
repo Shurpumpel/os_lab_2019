@@ -66,8 +66,7 @@ int main(int argc, char *argv[]) {
 
   char buf[BUFSIZE];
 
-  //Возвращает файловый дескриптор(>=0), который будет использоваться как ссылка на созданный коммуникационный узел
-  //SOCK_STREAM для потоковых сокетов
+  
   if ((fd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
     perror("socket creating problem");
     exit(1);
@@ -82,19 +81,23 @@ int main(int argc, char *argv[]) {
   }
   servaddr.sin_port = htons(PORT);
 
-  //Установления логического соединения со стороны клиента + неявный bind()
   if (connect(fd, (SADDR *)&servaddr, SIZE) < 0) {
-    perror("connect problem");
-    exit(1);
+    sleep(5);
+    if (connect(fd, (SADDR *)&servaddr, SIZE) < 0) {
+      perror("connect problem");
+      exit(1);
+    }
   }
 
   write(1, "Input message to send: \n", 22);
+  
   while ((nread = read(0, buf, BUFSIZE)) > 0) {
     if (write(fd, buf, nread) < 0) {
       perror("write problem");
       exit(1);
     }
   }
+  
 
   //Закрывает/прерывает все существующие соединения сокета
   close(fd);

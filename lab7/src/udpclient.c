@@ -79,8 +79,6 @@ int main(int argc, char **argv) {
   }
   servaddr.sin_port = htons(SERV_PORT);
 
-  //Возвращает файловый дескриптор (>=0), который будет использоваться как ссылка на созданный коммуникационный узел
-  //SOCK_DGRAM – для датаграммных
   if ((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
     perror("socket problem");
     exit(1);
@@ -89,25 +87,18 @@ int main(int argc, char **argv) {
   write(1, "Enter string: \n", 13);
 
   while ((n = read(0, sendline, BUFSIZE)) > 0) {
-    //отправляет сообщения в сокет  
-    //соединение не обязательно
+
     if (sendto(sockfd, sendline, n, 0, (SADDR *)&servaddr, SLEN) == -1) {
       perror("sendto problem");
       exit(1);
     }
-    sleep(1);
 
-    /*виснет, если не получили ответ от сервера
-    могут использоваться для получения данных, независимо от того, 
-    является ли сокет ориентированным на соединения или нет.*/
     if (recvfrom(sockfd, recvline, BUFSIZE, 0, NULL, NULL) == -1) {
       perror("recvfrom problem");
       exit(1);
     }
-    //ОТВЕТ
     printf("REPLY FROM SERVER = %s\n", recvline);  
   }
 
-  //Закрывает (или прерывает) все существующие соединения сокета
   close(sockfd);
 }
